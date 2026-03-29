@@ -4,7 +4,7 @@ import (
 	"log"
 	"net"
 
-	pb "github.com/akash-biswas-dev/grpc-lb/gen/lb"
+	pb "github.com/akash-biswas-dev/grpc-lb/gen/lb/v1"
 	"github.com/akash-biswas-dev/grpc-lb/internal/lb"
 	"google.golang.org/grpc"
 )

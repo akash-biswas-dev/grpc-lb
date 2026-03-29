@@ -1,11 +1,12 @@
 syntax = "proto3";
 
-package lb;
+package lb.v1;
 
-option go_package = "github.com/akash-biswas-dev/grpc-lb/proto";
+option go_package = "github.com/akash-biswas-dev/grpc-lb/gen/lb/v1;protolbv1";
 
 // The LoadBalancer service handles discovery and coordination.
 service LoadBalancerService {
+  rpc GetServers(GetServersRequest) returns (GetServersResponse);
   // 1. Backend Registration (Server-side)
   // Backends (Service B) call this to join the pool.
   // Using a stream allows the LB to detect a disconnect immediately.
@@ -14,23 +15,27 @@ service LoadBalancerService {
   // 2. Client Watcher (Client-side)
   // Clients (Service A) call this to get live updates of available backends.
   // Bidirectional so the client can also report local "Channel Health" to the LB.
-  rpc WatchServer(stream WatchServerRequest) returns (stream WatchServerResponse);
+  rpc WatchServer(WatchServerRequest) returns (stream WatchServerResponse);
+}
+
+message GetServersRequest {
+  string service_id = 1;
+}
+
+message GetServersResponse {
+  repeated string address = 1;
 }
 
 // --- Registration Messages ---
 
 message RegisterRequest {
-  string service_name = 1; // e.g., "service-b"
-  string pod_name = 2; // e.g., "service-b-8494f"
-  string ip_address = 3;
-  int32 port = 4;
-  map<string, string> metadata = 5; // For versioning or region info
+  string service_id = 1; // Key for each service.
+  string address = 2;
+  map<string, string> metadata = 3; // For versioning or region info
 }
 
 message RegisterResponse {
-  bool success = 1;
-  string message = 2;
-  int64 heartbeat_interval_ms = 3; // Tells backend how often to ping
+  optional string err = 1;
 }
 
 // --- Watcher Messages ---

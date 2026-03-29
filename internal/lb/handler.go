@@ -1,14 +1,16 @@
 package lb
 
 import (
+	"context"
+	"io"
 	"log"
 	"sync"
 
-	pb "github.com/akash-biswas-dev/grpc-lb/gen/lb"
+	pb "github.com/akash-biswas-dev/grpc-lb/gen/lb/v1"
 )
 
 type LoadBalancerServer struct {
-	pb.LoadBalancerServiceServer
+	pb.UnimplementedLoadBalancerServiceServer
 	// Registry of active backends (Service B)
 	backends sync.Map
 	// List of active client streams (Service A) to push updates to
@@ -19,24 +21,39 @@ func NewLoadBalancerServer() *LoadBalancerServer {
 	return &LoadBalancerServer{}
 }
 
-// WatchBackends implementation
-func (s *LoadBalancerServer) WatchBackends(stream pb.LoadBalancerService_WatchServerServer) error {
+func (s *LoadBalancerServer) GetServers(con context.Context, r *pb.GetServersRequest) (*pb.GetServersResponse, error) {
+
+	availableServers := pb.GetServersResponse{
+		Address: []string{
+			"127.0.0.1",
+		},
+	}
+
+	return &availableServers, nil
+}
+
+func (s *LoadBalancerServer) Register(stream pb.LoadBalancerService_RegisterServer) error {
+
 	for {
-		// Receive initial request from Service A
 		req, err := stream.Recv()
+
+		if err == io.EOF {
+			return stream.SendAndClose(nil)
+		}
+
 		if err != nil {
 			return err
 		}
 
-		log.Printf("Client %s is watching %s", req.ClientId, req.ServiceToWatch)
+		serviceId := req.ServiceId
+		ipAddress := req.Address
 
-		// TODO: Store this stream in s.watchers so when K8s finds a new Pod,
-		// you can loop through these streams and call stream.Send(update)
+		log.Printf("Added POD with service-id %s, Ip-Address %s  ", serviceId, ipAddress)
 	}
 }
 
-// Register implementation for Service B
-func (s *LoadBalancerServer) Register(stream pb.LoadBalancerService_RegisterServer) error {
-	// Handle Service B heartbeats here...
+func (s *LoadBalancerServer) WatchServer(req *pb.WatchServerRequest, stream pb.LoadBalancerService_WatchServerServer) error {
 	return nil
 }
+
+// Register implementation for Service B
