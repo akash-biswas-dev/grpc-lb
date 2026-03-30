@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package lb.v1;
 
-option go_package = "github.com/akash-biswas-dev/grpc-lb/gen/lb/v1;protolbv1";
+option go_package = "github.com/akash-biswas-dev/grpc-lb/gen/lb/v1;genlbv1";
 
 // The LoadBalancer service handles discovery and coordination.
 service LoadBalancerService {
