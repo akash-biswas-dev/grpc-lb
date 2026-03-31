@@ -155,9 +155,8 @@ func (st *ServiceTracker) RemoveClient(clientId, serviceId string) {
 }
 
 func (st *ServiceTracker) GetNodes(serviceId string) []string {
-
 	st.mu.RLock()
-	defer st.mu.Unlock()
+	defer st.mu.RUnlock()
 
 	serv, exists := st.serviceList[serviceId]
 

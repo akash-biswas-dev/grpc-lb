@@ -23,10 +23,10 @@ func NewLoadBalancerServer(expiration int) *LoadBalancerServer {
 
 func (s *LoadBalancerServer) GetServers(con context.Context, r *pb.GetServersRequest) (*pb.GetServersResponse, error) {
 
+	availabelServers := s.serviceTracker.GetNodes(r.ServiceId)
+
 	availableServers := pb.GetServersResponse{
-		Address: []string{
-			"127.0.0.1",
-		},
+		Address: availabelServers,
 	}
 
 	return &availableServers, nil
@@ -48,7 +48,7 @@ func (s *LoadBalancerServer) Register(stream pb.LoadBalancerService_RegisterServ
 		serviceId := req.ServiceId
 		ipAddress := req.Address
 
-		log.Printf("Added POD with service-id %s, Ip-Address %s  ", serviceId, ipAddress)
+		s.serviceTracker.UpdateNode(serviceId, ipAddress)
 	}
 }
 
@@ -101,10 +101,11 @@ func (s *LoadBalancerServer) GetAddress(_ context.Context, req *pb.GetAddressReq
 	address, valid := s.serviceTracker.GetNode(req.ServiceId)
 
 	if valid {
-		return nil, errors.New("No nodes available.")
+		return &pb.GetAddressResponse{
+			Address: address,
+		}, nil
 	}
 
-	return &pb.GetAddressResponse{
-		Address: address,
-	}, nil
+	return nil, errors.New("No node found")
+
 }

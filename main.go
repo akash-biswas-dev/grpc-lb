@@ -21,7 +21,7 @@ func main() {
 
 	// 3. Initialize your LoadBalancer implementation
 	// This struct will hold the logic for Register and WatchBackends
-	lbService := lb.NewLoadBalancerServer()
+	lbService := lb.NewLoadBalancerServer(30)
 
 	// 4. Register the service with the gRPC server
 	pb.RegisterLoadBalancerServiceServer(grpcServer, lbService)
